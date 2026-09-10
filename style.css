@@ -1,0 +1,515 @@
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: "Hiragino Maru Gothic ProN", "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif;
+  background: linear-gradient(160deg, #fff6e0 0%, #ffe9d6 40%, #ffe0ec 100%);
+  color: #3b2f2f;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px 60px;
+}
+
+.screen {
+  display: none;
+  width: 100%;
+  max-width: 720px;
+}
+.screen.active {
+  display: block;
+  animation: fadein 0.35s ease;
+}
+
+@keyframes fadein {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- 単元選択画面 ---- */
+h1 {
+  text-align: center;
+  font-size: clamp(28px, 6vw, 42px);
+  color: #ff7a45;
+  text-shadow: 2px 2px 0 #fff2c7;
+  margin: 8px 0 4px;
+}
+.subtitle {
+  text-align: center;
+  font-size: 18px;
+  color: #7a6a55;
+  margin: 0 0 28px;
+}
+
+.unit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+@media (min-width: 480px) {
+  .unit-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.unit-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 22px 10px;
+  border: none;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 6px 0 #f0d9c0, 0 8px 16px rgba(0,0,0,0.08);
+  font-size: 20px;
+  font-weight: 700;
+  color: #5a4632;
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.unit-btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #f0d9c0, 0 4px 8px rgba(0,0,0,0.08);
+}
+.unit-btn.mix {
+  background: linear-gradient(135deg, #ffd166, #ff7a45);
+  color: #fff;
+  box-shadow: 0 6px 0 #d9622c, 0 8px 16px rgba(0,0,0,0.12);
+  grid-column: span 2;
+}
+@media (min-width: 480px) {
+  .unit-btn.mix { grid-column: span 1; }
+}
+.unit-btn.mix:active {
+  box-shadow: 0 2px 0 #d9622c, 0 4px 8px rgba(0,0,0,0.12);
+}
+.unit-icon { font-size: 40px; }
+
+/* ---- レベル選択画面 ---- */
+.level-message {
+  text-align: center;
+  font-size: 19px;
+  font-weight: 800;
+  color: #ff7a45;
+  background: #fff2d9;
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin: 4px 0 24px;
+}
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.level-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px 10px;
+  border: none;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 6px 0 #f0d9c0, 0 8px 16px rgba(0,0,0,0.08);
+  cursor: pointer;
+}
+.level-btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #f0d9c0, 0 4px 8px rgba(0,0,0,0.08);
+}
+.level-num {
+  font-size: 24px;
+  font-weight: 800;
+  color: #2a76d1;
+}
+.level-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: #5a4632;
+}
+.level-btn[data-level="4"] .level-num { color: #ff7a45; }
+.level-btn[data-level="4"] .level-label { color: #ff7a45; }
+
+/* ---- 問題画面 ---- */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.back-btn {
+  border: none;
+  background: none;
+  font-size: 16px;
+  color: #a08b6f;
+  cursor: pointer;
+  padding: 8px;
+}
+.unit-name-badge {
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 18px;
+  font-weight: 700;
+  color: #ff7a45;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.problem-card {
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 32px 24px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.problem-question {
+  font-size: clamp(28px, 7vw, 40px);
+  font-weight: 800;
+  text-align: center;
+  color: #3b2f2f;
+  margin: 0 0 28px;
+  letter-spacing: 1px;
+}
+
+.question-pop {
+  animation: questionpop 0.35s ease;
+}
+@keyframes questionpop {
+  0% { transform: scale(0.96); }
+  50% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+.answer-area {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+#answer-input {
+  font-size: 28px;
+  width: 160px;
+  text-align: center;
+  padding: 14px 10px;
+  border: 3px solid #ffd6b8;
+  border-radius: 16px;
+  outline: none;
+  background: #fffaf3;
+}
+#answer-input:focus {
+  border-color: #ff7a45;
+}
+
+.submit-btn {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  background: #ff7a45;
+  border: none;
+  border-radius: 16px;
+  padding: 14px 28px;
+  cursor: pointer;
+  box-shadow: 0 5px 0 #d9622c;
+  transition: transform 0.08s ease;
+}
+.submit-btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 #d9622c;
+}
+
+.feedback-area {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 800;
+  min-height: 40px;
+  margin-top: 20px;
+}
+.feedback-area.correct {
+  color: #34a853;
+  animation: pop 0.4s ease;
+}
+.feedback-area.incorrect {
+  color: #ff8a5c;
+}
+@keyframes pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+.hint-area, .explanation-area {
+  margin-top: 16px;
+}
+
+.hint-box {
+  background: #fff8e6;
+  border: 2px dashed #ffd166;
+  border-radius: 16px;
+  padding: 14px 18px;
+  font-size: 18px;
+  color: #7a5c1e;
+  margin-top: 10px;
+  animation: fadein 0.3s ease;
+}
+.why-wrong-btn {
+  display: block;
+  margin: 10px auto 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #2a76d1;
+  background: #eef7ff;
+  border: none;
+  border-radius: 12px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+.why-wrong-btn:active {
+  transform: translateY(2px);
+}
+.why-wrong-box {
+  background: #eef7ff;
+  border: 2px dashed #9dc4ee;
+  color: #2a5a8f;
+}
+.hint-box .hint-label {
+  font-weight: 800;
+  color: #ff7a45;
+  margin-right: 6px;
+}
+
+.explain-box {
+  background: #eef7ff;
+  border-radius: 18px;
+  padding: 18px 20px;
+  margin-top: 10px;
+}
+.explain-title {
+  font-weight: 800;
+  color: #2a76d1;
+  font-size: 18px;
+  margin: 0 0 10px;
+}
+.explain-step {
+  font-size: 18px;
+  padding: 8px 0;
+  opacity: 0;
+  transform: translateX(-6px);
+  animation: stepin 0.4s ease forwards;
+  border-bottom: 1px dashed #cfe3fa;
+}
+.explain-step:last-child { border-bottom: none; }
+.explain-step .step-num {
+  display: inline-block;
+  width: 24px; height: 24px;
+  line-height: 24px;
+  text-align: center;
+  border-radius: 50%;
+  background: #2a76d1;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  margin-right: 8px;
+}
+@keyframes stepin {
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ---- わり算の筆算ビジュアル ---- */
+/* 商は枠（かっこ）の外・上に置く。枠で囲むのは「わられる数」から下だけ。 */
+.ld-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 10px 0 4px;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+}
+.ld-quotient-line, .ld-divisor-body-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.ld-divisor-spacer {
+  font-size: 22px;
+  font-weight: 800;
+  visibility: hidden;
+}
+.ld-divisor {
+  font-size: 22px;
+  font-weight: 800;
+  color: #2a76d1;
+  padding-top: 4px;
+}
+.ld-body {
+  position: relative;
+  padding: 4px 10px 10px 10px;
+  display: flex;
+  flex-direction: column;
+}
+/* かっこの線（上と左）は「わられる数」の行だけに付ける。計算の続きまで縦線を伸ばさない。
+   paddingやmarginは変えない（他の行とグリッドの列位置がズレるのを防ぐため）。 */
+.ld-dividend-row {
+  border-top: 3px solid #2a76d1;
+  border-left: 3px solid #2a76d1;
+  border-radius: 0 6px 0 0;
+  padding-bottom: 2px;
+}
+.ld-bringdown-clone {
+  position: absolute;
+  text-align: center;
+  font-size: 26px;
+  font-weight: 800;
+  color: #ff7a45;
+  background: #fff2c7;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px #ffe0a8;
+  transform: scale(1.3);
+  pointer-events: none;
+  z-index: 5;
+}
+.ld-bringdown-clone.ld-bringdown-moving {
+  transition: left 0.9s cubic-bezier(0.4, 0.3, 0.2, 1.4), top 0.9s cubic-bezier(0.4, 0.3, 0.2, 1.4);
+}
+.ld-bringdown-clone.ld-bringdown-landed {
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease, font-size 0.3s ease;
+  transform: scale(1);
+  font-size: 22px;
+  font-weight: 700;
+  background: transparent;
+  box-shadow: none;
+  color: #2a76d1;
+}
+.ld-digit-used {
+  opacity: 0.35;
+}
+.ld-row {
+  display: grid;
+  grid-template-columns: repeat(var(--ld-cols), 30px);
+  opacity: 0;
+  animation: ldFadeIn 0.4s ease forwards;
+}
+.ld-quotient-row, .ld-dividend-row {
+  opacity: 1;
+  animation: none;
+}
+.ld-quotient-row {
+  margin-bottom: 4px;
+}
+.ld-cell {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #3b2f2f;
+}
+.ld-quotient-digit {
+  color: #ff7a45;
+  opacity: 0;
+  animation: ldFadeIn 0.4s ease forwards;
+}
+.ld-used-value {
+  color: #9c8a72;
+}
+.ld-subtract-line {
+  display: block;
+  height: 0;
+  border-top: 2px solid #9c8a72;
+  margin: 3px 0 1px;
+}
+.ld-remainder-value {
+  color: #2a76d1;
+  font-weight: 800;
+}
+@keyframes ldFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.ld-summary {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 800;
+  color: #34a853;
+  margin-top: 16px;
+  opacity: 0;
+  animation: ldFadeIn 0.4s ease forwards;
+}
+
+.ld-controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+.ld-next-btn, .ld-replay-btn {
+  font-size: 17px;
+  font-weight: 700;
+  border: none;
+  border-radius: 14px;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+.ld-next-btn {
+  color: #fff;
+  background: #ff7a45;
+  box-shadow: 0 4px 0 #d9622c;
+}
+.ld-next-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #d9622c;
+}
+.ld-replay-btn {
+  color: #2a76d1;
+  background: #eef7ff;
+  box-shadow: 0 4px 0 #cfe3fa;
+}
+.ld-replay-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #cfe3fa;
+}
+
+.ld-caption {
+  text-align: center;
+  font-size: 17px;
+  font-weight: 700;
+  color: #2a76d1;
+  background: #eef7ff;
+  border-radius: 14px;
+  padding: 10px 14px;
+  margin: 0 0 14px;
+  min-height: 22px;
+}
+.ld-caption.ld-pop {
+  animation: ldCaptionPop 0.4s ease;
+}
+@keyframes ldCaptionPop {
+  0% { transform: scale(0.97); opacity: 0.4; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.next-btn {
+  display: block;
+  margin: 24px auto 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  background: #34a853;
+  border: none;
+  border-radius: 16px;
+  padding: 14px 32px;
+  cursor: pointer;
+  box-shadow: 0 5px 0 #268a3f;
+}
+.next-btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 #268a3f;
+}

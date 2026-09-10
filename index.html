@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>さんすうチャレンジ</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- 単元選択画面 -->
+  <section id="screen-select" class="screen active">
+    <h1>さんすうチャレンジ</h1>
+    <p class="subtitle">やりたいものをえらんでね</p>
+    <div class="unit-grid">
+      <button class="unit-btn" data-unit="multiplication">
+        <span class="unit-icon">✖️</span>
+        <span class="unit-label">かけ算</span>
+      </button>
+      <button class="unit-btn" data-unit="division">
+        <span class="unit-icon">➗</span>
+        <span class="unit-label">わり算</span>
+      </button>
+      <button class="unit-btn" data-unit="decimal">
+        <span class="unit-icon">🔢</span>
+        <span class="unit-label">小数</span>
+      </button>
+      <button class="unit-btn" data-unit="fraction">
+        <span class="unit-icon">🍕</span>
+        <span class="unit-label">分数</span>
+      </button>
+      <button class="unit-btn mix" data-unit="mix">
+        <span class="unit-icon">🎲</span>
+        <span class="unit-label">ミックス</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- レベル選択画面 -->
+  <section id="screen-level" class="screen">
+    <div class="top-bar">
+      <button id="btn-back-to-select" class="back-btn">← もどる</button>
+      <span id="level-unit-badge" class="unit-name-badge"></span>
+    </div>
+    <p class="level-message">数字が大きくなるだけで、やり方はいつも同じだよ！</p>
+    <div class="level-grid">
+      <button class="level-btn" data-level="1">
+        <span class="level-num">Lv.1</span>
+        <span class="level-label">かんたん</span>
+      </button>
+      <button class="level-btn" data-level="2">
+        <span class="level-num">Lv.2</span>
+        <span class="level-label">ふつう</span>
+      </button>
+      <button class="level-btn" data-level="3">
+        <span class="level-num">Lv.3</span>
+        <span class="level-label">むずかしい</span>
+      </button>
+      <button class="level-btn" data-level="4">
+        <span class="level-num">Lv.4</span>
+        <span class="level-label">ちょう難関</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- 問題画面 -->
+  <section id="screen-problem" class="screen">
+    <div class="top-bar">
+      <button id="btn-back" class="back-btn">← もどる</button>
+      <span id="unit-name-badge" class="unit-name-badge"></span>
+    </div>
+
+    <div class="problem-card">
+      <p id="problem-question" class="problem-question"></p>
+
+      <div class="answer-area">
+        <input id="answer-input" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="こたえ">
+        <button id="btn-submit" class="submit-btn">こたえる</button>
+      </div>
+
+      <div id="feedback-area" class="feedback-area"></div>
+
+      <div id="hint-area" class="hint-area"></div>
+
+      <div id="explanation-area" class="explanation-area"></div>
+
+      <button id="btn-next" class="next-btn" style="display:none;">つぎのもんだい →</button>
+    </div>
+  </section>
+
+</div>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>
