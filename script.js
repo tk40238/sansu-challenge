@@ -2,6 +2,7 @@ import * as multiplication from './units/multiplication.js';
 import * as division from './units/division.js';
 import * as decimal from './units/decimal.js';
 import * as fraction from './units/fraction.js';
+import { recordAnswer, getDailyStats, getTodayKey } from './stats.js';
 
 const UNITS = {
   multiplication: { label: 'かけ算', module: multiplication },
@@ -14,8 +15,13 @@ const MIX_KEYS = Object.keys(UNITS);
 const screenSelect = document.getElementById('screen-select');
 const screenLevel = document.getElementById('screen-level');
 const screenProblem = document.getElementById('screen-problem');
+const screenStats = document.getElementById('screen-stats');
 const levelUnitBadge = document.getElementById('level-unit-badge');
 const btnBackToSelect = document.getElementById('btn-back-to-select');
+const btnStats = document.getElementById('btn-stats');
+const btnBackFromStats = document.getElementById('btn-back-from-stats');
+const statsTodayEl = document.getElementById('stats-today');
+const statsListEl = document.getElementById('stats-list');
 const unitNameBadge = document.getElementById('unit-name-badge');
 const problemQuestion = document.getElementById('problem-question');
 let answerInput = document.getElementById('answer-input');
@@ -70,6 +76,77 @@ function replaceAnswerInputElement() {
 function showScreen(el) {
   document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
   el.classList.add('active');
+}
+
+function formatDateLabel(dateStr) {
+  const [, m, d] = dateStr.split('-');
+  return `${Number(m)}/${Number(d)}`;
+}
+
+function unitLabelFor(key) {
+  return UNITS[key] ? UNITS[key].label : key;
+}
+
+function renderStatsScreen() {
+  const days = getDailyStats();
+  const today = days.find((d) => d.date === getTodayKey());
+
+  statsTodayEl.innerHTML = '';
+  if (today) {
+    const rate = today.total > 0 ? Math.round((today.correct / today.total) * 100) : 0;
+    const p1 = document.createElement('p');
+    p1.className = 'stats-today-label';
+    p1.textContent = 'きょう';
+    const p2 = document.createElement('p');
+    p2.className = 'stats-today-rate';
+    p2.textContent = `${rate}%`;
+    const p3 = document.createElement('p');
+    p3.className = 'stats-today-count';
+    p3.textContent = `${today.correct} / ${today.total} もん せいかい`;
+    statsTodayEl.append(p1, p2, p3);
+  } else {
+    const p = document.createElement('p');
+    p.className = 'stats-today-empty';
+    p.textContent = 'きょうはまだ もんだいを といていないよ';
+    statsTodayEl.appendChild(p);
+  }
+
+  statsListEl.innerHTML = '';
+  if (days.length === 0) {
+    const p = document.createElement('p');
+    p.className = 'stats-empty';
+    p.textContent = 'きろくがまだないよ。もんだいをといてみよう！';
+    statsListEl.appendChild(p);
+    return;
+  }
+
+  days.forEach((d) => {
+    const rate = d.total > 0 ? Math.round((d.correct / d.total) * 100) : 0;
+    const row = document.createElement('div');
+    row.className = 'stats-row';
+
+    const main = document.createElement('div');
+    main.className = 'stats-row-main';
+    const dateEl = document.createElement('span');
+    dateEl.className = 'stats-row-date';
+    dateEl.textContent = formatDateLabel(d.date);
+    const rateEl = document.createElement('span');
+    rateEl.className = 'stats-row-rate';
+    rateEl.textContent = `${rate}%`;
+    const countEl = document.createElement('span');
+    countEl.className = 'stats-row-count';
+    countEl.textContent = `${d.correct} / ${d.total} もん`;
+    main.append(dateEl, rateEl, countEl);
+
+    const detail = document.createElement('div');
+    detail.className = 'stats-row-detail';
+    detail.textContent = Object.entries(d.byUnit)
+      .map(([key, v]) => `${unitLabelFor(key)} ${v.correct}/${v.total}`)
+      .join('　');
+
+    row.append(main, detail);
+    statsListEl.appendChild(row);
+  });
 }
 
 function pickModuleForThisProblem() {
@@ -778,6 +855,7 @@ function showWhyWrongButton(wrongValue) {
 
 function finishProblem(finalFeedbackText, feedbackClass) {
   state.answered = true;
+  recordAnswer(state.activeModuleKey, feedbackClass === 'correct');
   feedbackArea.textContent = finalFeedbackText;
   feedbackArea.className = `feedback-area ${feedbackClass}`;
   hintArea.innerHTML = ''; // 途中で間違えて出たヒントが、正解後も残らないようにする
@@ -862,6 +940,12 @@ document.querySelectorAll('.level-btn').forEach((btn) => {
 });
 
 btnBackToSelect.addEventListener('click', () => showScreen(screenSelect));
+
+btnStats.addEventListener('click', () => {
+  renderStatsScreen();
+  showScreen(screenStats);
+});
+btnBackFromStats.addEventListener('click', () => showScreen(screenSelect));
 
 btnSubmit.addEventListener('click', handleSubmit);
 bindAnswerInputEvents();

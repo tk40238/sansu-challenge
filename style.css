@@ -516,3 +516,94 @@ h1 {
   transform: translateY(4px);
   box-shadow: 0 1px 0 #268a3f;
 }
+
+/* ---- きろく画面 ---- */
+.stats-link-btn {
+  margin-left: auto;
+  border: none;
+  background: #fff;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ff7a45;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  cursor: pointer;
+}
+.stats-link-btn:active {
+  transform: translateY(2px);
+}
+
+.stats-today-card {
+  background: #fff;
+  border-radius: 24px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
+}
+.stats-today-label {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #a08b6f;
+}
+.stats-today-rate {
+  margin: 4px 0;
+  font-size: 48px;
+  font-weight: 800;
+  color: #ff7a45;
+}
+.stats-today-count {
+  margin: 0;
+  font-size: 16px;
+  color: #7a6a55;
+}
+.stats-today-empty {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #a08b6f;
+}
+
+.stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.stats-empty {
+  text-align: center;
+  color: #a08b6f;
+  font-size: 16px;
+}
+.stats-row {
+  background: #fff;
+  border-radius: 18px;
+  padding: 14px 18px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+}
+.stats-row-main {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.stats-row-date {
+  font-weight: 800;
+  font-size: 17px;
+  color: #3b2f2f;
+}
+.stats-row-rate {
+  font-weight: 800;
+  font-size: 20px;
+  color: #2a76d1;
+  margin-left: auto;
+}
+.stats-row-count {
+  font-size: 14px;
+  color: #7a6a55;
+}
+.stats-row-detail {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #a08b6f;
+}

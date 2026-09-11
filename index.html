@@ -12,6 +12,10 @@
 
   <!-- 単元選択画面 -->
   <section id="screen-select" class="screen active">
+    <div class="top-bar">
+      <span></span>
+      <button id="btn-stats" class="stats-link-btn">📊 きろく</button>
+    </div>
     <h1>さんすうチャレンジ</h1>
     <p class="subtitle">やりたいものをえらんでね</p>
     <div class="unit-grid">
@@ -88,6 +92,16 @@
 
       <button id="btn-next" class="next-btn" style="display:none;">つぎのもんだい →</button>
     </div>
+  </section>
+
+  <!-- きろく画面 -->
+  <section id="screen-stats" class="screen">
+    <div class="top-bar">
+      <button id="btn-back-from-stats" class="back-btn">← もどる</button>
+      <span class="unit-name-badge">きろく</span>
+    </div>
+    <div id="stats-today" class="stats-today-card"></div>
+    <div id="stats-list" class="stats-list"></div>
   </section>
 
 </div>
