@@ -6,6 +6,47 @@ function randInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+// 整数どうしのたし算を、一の位から順に繰り上がりを処理する筆算どおりに計算する（かけ算と同じやり方）。
+function addColumns(aStr, bStr) {
+  const L = Math.max(aStr.length, bStr.length);
+  const ap = aStr.padStart(L, '0');
+  const bp = bStr.padStart(L, '0');
+  let carry = 0;
+  const steps = [];
+  for (let i = L - 1; i >= 0; i--) {
+    const da = Number(ap[i]);
+    const db = Number(bp[i]);
+    const raw = da + db + carry;
+    const writeDigit = raw % 10;
+    const carryOut = Math.floor(raw / 10);
+    steps.push({ a: da, b: db, carryIn: carry, raw, writeDigit, carryOut });
+    carry = carryOut;
+  }
+  return { steps, finalCarry: carry }; // stepsは一の位が先頭
+}
+
+// 整数どうしのひき算を、一の位から順に繰り下がりを処理する筆算どおりに計算する。aはbより大きいか等しい前提。
+function subColumns(aStr, bStr) {
+  const L = aStr.length;
+  const bp = bStr.padStart(L, '0');
+  let borrow = 0;
+  const steps = [];
+  for (let i = L - 1; i >= 0; i--) {
+    const da = Number(aStr[i]);
+    const db = Number(bp[i]);
+    let daEffective = da - borrow;
+    let borrowedFrom = false;
+    if (daEffective < db) {
+      daEffective += 10;
+      borrowedFrom = true;
+    }
+    const writeDigit = daEffective - db;
+    steps.push({ a: da, b: db, borrowIn: borrow, borrowedFrom, writeDigit });
+    borrow = borrowedFrom ? 1 : 0;
+  }
+  return { steps }; // stepsは一の位が先頭
+}
+
 // レベルごとの範囲。数字が大きくなる・桁が増えるだけで、やり方（そろえて整数として計算）は同じ。
 // unitRange は「一番小さい位のいくつ分」を表す整数の範囲。decimalPlaces で小数点の位置を決める。
 const LEVELS = {
@@ -36,12 +77,21 @@ export function generate(level = 2) {
   const bVal = (b * unit).toFixed(places);
   const resultVal = (resultUnits * unit).toFixed(places);
 
-  const explanation = [
-    '小数点をそろえて考えます',
-    `${aVal} は ${unitLabel} が ${a} こ、${bVal} は ${unitLabel} が ${b} こ`,
-    `${a} ${op} ${b} = ${resultUnits}`,
-    `${unitLabel} が ${resultUnits} こなので、答えは ${resultVal}`,
-  ];
+  const aStr = String(a);
+  const bStr = String(b);
+  const { steps, finalCarry } = isAddition ? addColumns(aStr, bStr) : subColumns(aStr, bStr);
+
+  const visual = {
+    type: 'decimal',
+    op,
+    aStr,
+    bStr,
+    places,
+    steps,
+    finalCarry: isAddition ? finalCarry : 0,
+    answer: resultUnits,
+    displayValue: resultVal,
+  };
 
   const hints = [
     `${unitLabel} がいくつ分か、に置きかえて考えてみよう`,
@@ -55,7 +105,7 @@ export function generate(level = 2) {
     resultUnits,
     places,
     hints,
-    explanation,
+    visual,
   };
 }
 

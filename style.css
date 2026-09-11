@@ -430,6 +430,9 @@ h1 {
   color: #2a76d1;
   font-weight: 800;
 }
+.ld-decimal-point {
+  color: #3b2f2f;
+}
 @keyframes ldFadeIn {
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
