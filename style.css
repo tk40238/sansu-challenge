@@ -437,6 +437,17 @@ h1 {
   color: #2a76d1;
   font-weight: 800;
 }
+.ld-carry-row {
+  min-height: 16px;
+}
+.ld-carry-digit {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ff7a45;
+  align-self: end;
+  opacity: 0;
+  animation: ldFadeIn 0.3s ease forwards;
+}
 @keyframes ldFadeIn {
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }

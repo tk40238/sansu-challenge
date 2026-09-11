@@ -559,6 +559,7 @@ function renderMultiplicationExplanation(visual, title) {
     span.style.gridRow = '1';
     span.textContent = text;
     row.appendChild(span);
+    return span;
   }
 
   // 右端(totalCols)をそろえて右づめで数字を置く。戻り値はいちばん左の桁の列番号
@@ -595,6 +596,7 @@ function renderMultiplicationExplanation(visual, title) {
 
   const beats = [];
   const partialRows = [];
+  const carryRows = [];
 
   beats.push({
     caption: `かける数の一の位「${bStr[bStr.length - 1]}」から、九九を使って順番に計算していきます`,
@@ -614,21 +616,35 @@ function renderMultiplicationExplanation(visual, title) {
     const ownLen = p.calcSteps.length + (p.finalCarry > 0 ? 1 : 0);
     const rowRightCol = totalCols - p.shift;
     const rowStartCol = rowRightCol - ownLen + 1;
+    let liveCarryMark = null; // まだ次の位で使われていない、小さく仮表示中のくり上がり
 
     p.calcSteps.forEach((s, k) => {
       const col = rowRightCol - k;
       const carryText = s.carryIn > 0 ? `+${s.carryIn}` : '';
       const writeText = s.carryOut > 0
-        ? `→ ${s.writeDigit} を書いて ${s.carryOut} くり上げ`
+        ? `→ ${s.writeDigit} を書いて ${s.carryOut} くり上げ（小さい数字）`
         : `→ ${s.writeDigit} を書く`;
+      const isLastStep = k === p.calcSteps.length - 1;
       beats.push({
         caption: `${placeName(k)}：${s.digit}×${p.digit}${carryText}=${s.raw} ${writeText}`,
         run: () => {
           if (k === 0) {
+            carryRows[pi] = makeRow();
+            carryRows[pi].classList.add('ld-carry-row');
             partialRows[pi] = makeRow();
             if (pi > 0) appendCell(partialRows[pi], rowStartCol - 1, '+', 'ld-op-symbol');
           }
+          // 前の位で出した小さいくり上がりは、この計算で使い終わったので消す
+          if (liveCarryMark) {
+            liveCarryMark.remove();
+            liveCarryMark = null;
+          }
           appendCell(partialRows[pi], col, String(s.writeDigit), 'ld-quotient-digit');
+          // さいごの位のくり上がりは一番上の位の数字としてそのまま確定表示するので、
+          // ここでは「まだ変わるかもしれない」小さい数字は出さない
+          if (s.carryOut > 0 && !isLastStep) {
+            liveCarryMark = appendCell(carryRows[pi], col - 1, String(s.carryOut), 'ld-carry-digit');
+          }
         },
       });
     });
