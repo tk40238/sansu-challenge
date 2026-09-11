@@ -1,8 +1,10 @@
-import * as multiplication from './units/multiplication.js';
-import * as division from './units/division.js';
-import * as decimal from './units/decimal.js';
-import * as fraction from './units/fraction.js';
-import { recordAnswer, getDailyStats, getTodayKey } from './stats.js';
+// import先の ?v=N は、更新のたびに古いキャッシュがブラウザに残らないようにするための
+// バージョン番号。ファイルの中身を直したら、こことindex.htmlのv=も一緒に上げる。
+import * as multiplication from './units/multiplication.js?v=3';
+import * as division from './units/division.js?v=3';
+import * as decimal from './units/decimal.js?v=3';
+import * as fraction from './units/fraction.js?v=3';
+import { recordAnswer, getDailyStats, getTodayKey } from './stats.js?v=3';
 
 const UNITS = {
   multiplication: { label: 'かけ算', module: multiplication },
