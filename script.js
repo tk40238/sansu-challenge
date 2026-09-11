@@ -233,10 +233,9 @@ function loadNextProblem() {
   btnSubmit.style.display = '';
   btnNext.style.display = 'none';
 
-  setTimeout(() => {
-    answerInput.value = '';
-    answerInput.focus();
-  }, 30);
+  // replaceAnswerInputElement()でできた新しい<input>はこの時点で必ず空なので、
+  // 遅延させて消す必要はない（遅延させると、すぐに入力した答えを後から消してしまう）。
+  answerInput.focus();
 }
 
 // 数字は1桁ずつ個別のマスに分けて置く（1つのマスに複数桁をまとめて中央寄せすると、
@@ -247,6 +246,7 @@ function renderDigitsInRow(row, value, startCol, extraClass) {
     const span = document.createElement('span');
     span.className = `ld-cell ${extraClass}`;
     span.style.gridColumn = `${startCol + k} / span 1`;
+    span.style.gridRow = '1';
     span.textContent = str[k];
     row.appendChild(span);
   }
@@ -379,6 +379,7 @@ function renderLongDivisionExplanation(visual, title) {
     const span = document.createElement('span');
     span.className = 'ld-cell';
     span.style.gridColumn = `${i + 1} / span 1`;
+    span.style.gridRow = '1';
     span.textContent = dividendStr[i];
     dRow.appendChild(span);
     dividendDigitEls.push(span);
@@ -404,6 +405,7 @@ function renderLongDivisionExplanation(visual, title) {
     const placeholder = document.createElement('span');
     placeholder.className = 'ld-cell';
     placeholder.style.gridColumn = `${targetColEnd + 1} / span 1`;
+    placeholder.style.gridRow = '1';
     placeholder.style.visibility = 'hidden';
     targetRow.appendChild(placeholder);
     const targetRect = placeholder.getBoundingClientRect();
@@ -445,6 +447,7 @@ function renderLongDivisionExplanation(visual, title) {
         const span = document.createElement('span');
         span.className = 'ld-cell ld-quotient-digit';
         span.style.gridColumn = `${s.colEnd + 1} / span 1`;
+        span.style.gridRow = '1';
         span.textContent = s.quotientDigit;
         qRow.appendChild(span);
       },
@@ -521,6 +524,7 @@ function placeName(i) {
 function renderMultiplicationExplanation(visual, title) {
   const { a, b, aStr, bStr, partials, answer } = visual;
   const N = String(answer).length;
+  const totalCols = N + 1; // ×や+の記号を書く列を1つ確保しておく（右端=totalColsをそろえる基準にする）
 
   const box = document.createElement('div');
   box.className = 'explain-box';
@@ -537,42 +541,49 @@ function renderMultiplicationExplanation(visual, title) {
   wrap.className = 'ld-wrap';
   box.appendChild(wrap);
 
-  // ×やの記号ぶんだけ幅をとる列を用意して、上下の行の桁位置をそろえる
-  // （記号を書かない行は、同じ幅の見えないスペーサーを入れる＝わり算のわる数と同じやり方）。
-  function symbolRow(symbolChar, visible) {
-    const line = document.createElement('div');
-    line.className = 'ld-quotient-line';
-    const sym = document.createElement('div');
-    sym.className = visible ? 'ld-divisor' : 'ld-divisor-spacer';
-    sym.textContent = symbolChar;
-    line.appendChild(sym);
+  // 行ごとに独立したグリッド（同じtotalCols・同じ右端）を作る。行によって記号の有無や
+  // 数字の桁数が違っても、右端をそろえておけば列がずれない（わり算のような幅合わせ用の
+  // 見えないスペーサーは不要）。
+  function makeRow() {
     const row = document.createElement('div');
     row.className = 'ld-row';
-    row.style.setProperty('--ld-cols', N);
-    line.appendChild(row);
-    wrap.appendChild(line);
+    row.style.setProperty('--ld-cols', totalCols);
+    wrap.appendChild(row);
     return row;
   }
 
-  function appendDigitCell(row, col, text, cls) {
+  function appendCell(row, col, text, cls) {
     const span = document.createElement('span');
     span.className = `ld-cell ${cls}`;
     span.style.gridColumn = `${col} / span 1`;
+    span.style.gridRow = '1';
     span.textContent = text;
     row.appendChild(span);
+  }
+
+  // 右端(totalCols)をそろえて右づめで数字を置く。戻り値はいちばん左の桁の列番号
+  // （記号をその1つ左＝startCol-1に置けば、数字にぴったりくっついて見える）。
+  function appendNumber(row, valueStr, cls) {
+    const startCol = totalCols - valueStr.length + 1;
+    for (let k = 0; k < valueStr.length; k++) {
+      appendCell(row, startCol + k, valueStr[k], cls);
+    }
+    return startCol;
   }
 
   function appendFullLine(row) {
     const line = document.createElement('span');
     line.className = 'ld-subtract-line';
-    line.style.gridColumn = `1 / span ${N}`;
+    line.style.gridColumn = `1 / span ${totalCols}`;
     row.appendChild(line);
   }
 
-  const aRow = symbolRow('×', false);
-  renderDigitsInRow(aRow, aStr, N - aStr.length + 1, '');
-  const bRow = symbolRow('×', true);
-  renderDigitsInRow(bRow, bStr, N - bStr.length + 1, '');
+  const aRow = makeRow();
+  appendNumber(aRow, aStr, '');
+
+  const bRow = makeRow();
+  const bStart = appendNumber(bRow, bStr, '');
+  appendCell(bRow, bStart - 1, '×', 'ld-op-symbol');
 
   const summary = document.createElement('p');
   summary.className = 'ld-summary';
@@ -588,7 +599,7 @@ function renderMultiplicationExplanation(visual, title) {
   beats.push({
     caption: `かける数の一の位「${bStr[bStr.length - 1]}」から、九九を使って順番に計算していきます`,
     run: () => {
-      appendFullLine(symbolRow('×', false));
+      appendFullLine(makeRow());
     },
   });
 
@@ -600,8 +611,12 @@ function renderMultiplicationExplanation(visual, title) {
       });
     }
 
+    const ownLen = p.calcSteps.length + (p.finalCarry > 0 ? 1 : 0);
+    const rowRightCol = totalCols - p.shift;
+    const rowStartCol = rowRightCol - ownLen + 1;
+
     p.calcSteps.forEach((s, k) => {
-      const col = (N - p.shift) - k;
+      const col = rowRightCol - k;
       const carryText = s.carryIn > 0 ? `+${s.carryIn}` : '';
       const writeText = s.carryOut > 0
         ? `→ ${s.writeDigit} を書いて ${s.carryOut} くり上げ`
@@ -610,19 +625,20 @@ function renderMultiplicationExplanation(visual, title) {
         caption: `${placeName(k)}：${s.digit}×${p.digit}${carryText}=${s.raw} ${writeText}`,
         run: () => {
           if (k === 0) {
-            partialRows[pi] = symbolRow(pi === 0 ? '×' : '+', pi > 0);
+            partialRows[pi] = makeRow();
+            if (pi > 0) appendCell(partialRows[pi], rowStartCol - 1, '+', 'ld-op-symbol');
           }
-          appendDigitCell(partialRows[pi], col, String(s.writeDigit), 'ld-quotient-digit');
+          appendCell(partialRows[pi], col, String(s.writeDigit), 'ld-quotient-digit');
         },
       });
     });
 
     if (p.finalCarry > 0) {
-      const col = (N - p.shift) - p.calcSteps.length;
+      const col = rowRightCol - p.calcSteps.length;
       beats.push({
         caption: `さいごに残った繰り上がりの ${p.finalCarry} は、そのまま一番上の位に書きます`,
         run: () => {
-          appendDigitCell(partialRows[pi], col, String(p.finalCarry), 'ld-quotient-digit');
+          appendCell(partialRows[pi], col, String(p.finalCarry), 'ld-quotient-digit');
         },
       });
     }
@@ -632,14 +648,14 @@ function renderMultiplicationExplanation(visual, title) {
     beats.push({
       caption: '2つの答えを、位をそろえてたし算します',
       run: () => {
-        appendFullLine(symbolRow('×', false));
+        appendFullLine(makeRow());
       },
     });
     beats.push({
       caption: `${partials.map((p) => p.value * 10 ** p.shift).join(' + ')} = ${answer}`,
       run: () => {
-        const sumRow = symbolRow('×', false);
-        renderDigitsInRow(sumRow, answer, 1, 'ld-remainder-value');
+        const sumRow = makeRow();
+        appendNumber(sumRow, String(answer), 'ld-remainder-value');
         summary.textContent = `答え：${answer}`;
         summary.style.display = '';
         summary.classList.add('ld-pop');
@@ -684,12 +700,16 @@ function narrateSubStep(s, pname) {
 function renderDecimalExplanation(visual, title) {
   const { op, aStr, bStr, places, steps, finalCarry, displayValue } = visual;
   const N = Math.max(aStr.length, bStr.length, String(visual.answer).length);
-  const totalCols = N + 1;
-  const decimalCol = N - places + 1; // 小数点そのものを置く列
+  // 小数点の分（vcol）と、演算記号の分（+1）で、合計2列ぶん余分に確保しておく。
+  // 演算記号は「その行いちばん左の桁のすぐ左」に置くので、行ごとに数字の桁数が
+  // 違っても（くり上がりで答えの桁が増えても）、記号と数字がくっついて見える。
+  const totalCols = N + 2;
 
   function vcol(logicalCol) {
-    return logicalCol <= (N - places) ? logicalCol : logicalCol + 1;
+    const shifted = logicalCol <= (N - places) ? logicalCol : logicalCol + 1;
+    return shifted + 1;
   }
+  const decimalCol = (N - places + 1) + 1;
 
   const box = document.createElement('div');
   box.className = 'explain-box';
@@ -706,25 +726,19 @@ function renderDecimalExplanation(visual, title) {
   wrap.className = 'ld-wrap';
   box.appendChild(wrap);
 
-  function symbolRow(symbolChar, visible) {
-    const line = document.createElement('div');
-    line.className = 'ld-quotient-line';
-    const sym = document.createElement('div');
-    sym.className = visible ? 'ld-divisor' : 'ld-divisor-spacer';
-    sym.textContent = symbolChar;
-    line.appendChild(sym);
+  function makeRow() {
     const row = document.createElement('div');
     row.className = 'ld-row';
     row.style.setProperty('--ld-cols', totalCols);
-    line.appendChild(row);
-    wrap.appendChild(line);
+    wrap.appendChild(row);
     return row;
   }
 
-  function appendDigitCell(row, logicalCol, text, cls) {
+  function appendCell(row, col, text, cls) {
     const span = document.createElement('span');
     span.className = `ld-cell ${cls}`;
-    span.style.gridColumn = `${vcol(logicalCol)} / span 1`;
+    span.style.gridColumn = `${col} / span 1`;
+    span.style.gridRow = '1';
     span.textContent = text;
     row.appendChild(span);
   }
@@ -732,16 +746,13 @@ function renderDecimalExplanation(visual, title) {
   function appendNumberRow(row, valueStr, cls) {
     const startCol = N - valueStr.length + 1;
     for (let k = 0; k < valueStr.length; k++) {
-      appendDigitCell(row, startCol + k, valueStr[k], cls);
+      appendCell(row, vcol(startCol + k), valueStr[k], cls);
     }
+    return vcol(startCol);
   }
 
   function appendDecimalPoint(row) {
-    const dot = document.createElement('span');
-    dot.className = 'ld-cell ld-decimal-point';
-    dot.style.gridColumn = `${decimalCol} / span 1`;
-    dot.textContent = '.';
-    row.appendChild(dot);
+    appendCell(row, decimalCol, '.', 'ld-decimal-point');
   }
 
   function appendFullLine(row) {
@@ -751,13 +762,14 @@ function renderDecimalExplanation(visual, title) {
     row.appendChild(line);
   }
 
-  const aRow = symbolRow(op, false);
+  const aRow = makeRow();
   appendNumberRow(aRow, aStr, '');
   appendDecimalPoint(aRow);
 
-  const bRow = symbolRow(op, true);
-  appendNumberRow(bRow, bStr, '');
+  const bRow = makeRow();
+  const bStart = appendNumberRow(bRow, bStr, '');
   appendDecimalPoint(bRow);
+  appendCell(bRow, bStart - 1, op, 'ld-op-symbol');
 
   const summary = document.createElement('p');
   summary.className = 'ld-summary';
@@ -773,12 +785,12 @@ function renderDecimalExplanation(visual, title) {
   beats.push({
     caption: '小数点をそろえて、一の位より右（小数部分）から順に計算していきます',
     run: () => {
-      appendFullLine(symbolRow(op, false));
+      appendFullLine(makeRow());
     },
   });
 
   steps.forEach((s, k) => {
-    const col = N - k;
+    const col = vcol(N - k);
     const pname = decimalPlaceName(k, places);
     let cap;
     if (op === '+') {
@@ -792,18 +804,18 @@ function renderDecimalExplanation(visual, title) {
     beats.push({
       caption: cap,
       run: () => {
-        if (k === 0) resultRow = symbolRow(op, false);
-        appendDigitCell(resultRow, col, String(s.writeDigit), 'ld-quotient-digit');
+        if (k === 0) resultRow = makeRow();
+        appendCell(resultRow, col, String(s.writeDigit), 'ld-quotient-digit');
       },
     });
   });
 
   if (op === '+' && finalCarry > 0) {
-    const col = N - steps.length;
+    const col = vcol(N - steps.length);
     beats.push({
       caption: `さいごに残った繰り上がりの ${finalCarry} は、そのまま一番上の位に書きます`,
       run: () => {
-        appendDigitCell(resultRow, col, String(finalCarry), 'ld-quotient-digit');
+        appendCell(resultRow, col, String(finalCarry), 'ld-quotient-digit');
       },
     });
   }
