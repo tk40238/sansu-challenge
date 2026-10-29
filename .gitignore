@@ -1,1 +1,5 @@
 .DS_Store
+# APIキーの入ったファイルを入れない（.env.example だけは入れてよい）
+.env
+.env.*
+!.env.example
